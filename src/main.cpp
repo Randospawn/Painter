@@ -11,16 +11,18 @@
 
 // Basic window rect that'll be where the screen renders to
 float verts[] = {
-	-1.0, -1.0,
-	1.0, -1.0,
-	1.0, 1.0,
-	-1.0, 1.0
+	-1.0, -1.0, 0.0, 0.0,
+	1.0, -1.0, 1.0, 0.0,
+	1.0, 1.0, 1.0, 1.0,
+	-1.0, 1.0, 0.0, 1.0
 };
 
 
 void Assert(unsigned char cond);
 unsigned char ReadFile(const char *filePath, std::string *buff);
 unsigned char CompileShader(GLuint *shader, std::string src);
+
+void MouseCallback(GLFWwindow *window, double x, double y);
 
 
 
@@ -50,7 +52,7 @@ int main(int argc, char **argv) {
 			exit(-1);
 		}
 	}
-	GLuint vbo, vao, vs, fs, p;
+	GLuint vbo, vao, vs, fs, p, texture;
 	glGenBuffers(1, &vbo);
 	glGenVertexArrays(1, &vao);
 	
@@ -58,14 +60,16 @@ int main(int argc, char **argv) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
 	
 	glBindVertexArray(vao);
-	// Starting index into the vbo data, number of elements per this attribute, attribute type, GL_FALSE, size of the amount of elements of specified type in bytes, (void *)0
-	glVertexAttribPointer(0, 2, GL_FLOAT, false, (2 * sizeof(GL_FLOAT)), (void *)0);
+	// Attribute index, number of elements per this attribute, attribute type, GL_FALSE, size of the amount of elements of specified type in bytes, (void *)0
+	glVertexAttribPointer(0, 2, GL_FLOAT, false, (4 * sizeof(GL_FLOAT)), (void *)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, false, (4 * sizeof(GL_FLOAT)), (void *)(2 * sizeof(GL_FLOAT)));
+	glEnableVertexAttribArray(1);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	{ // Get shader source code
+	{ // Get & compile shaders, then set up the texture
 		std::string vss, fss;
 		unsigned char s = ReadFile(".\\src\\vert.glsl", &vss);
 		if (s != true) {
@@ -113,20 +117,42 @@ int main(int argc, char **argv) {
 		glLinkProgram(p); // Remember to check if linked propperly eventually
 		glDeleteShader(fs);
 		glDeleteShader(vs);
+		
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	
 	// run loop it
 	while (glfwWindowShouldClose(win) != true) {
 		glfwPollEvents();
 		
+		double mx, my;
+		glfwGetCursorPos(win, &mx, &my);
+		
+		glfwGetWindowSize(win, &width, &height);
+		
 		glBindVertexArray(vao);
 		glUseProgram(p);
 		glClear(GL_COLOR_BUFFER_BIT);
-		// GLint ul = glGetUniformLocation(p, "");
+		
+		GLint tl = glGetUniformLocation(p, "txtr");
+		glUniform1i(tl, 0); // Sets the texture slot of txtr to slot 0
+		
+		// Bind the texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		
 		glfwSwapBuffers(win);
 		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	
 	// clean & exit
@@ -178,6 +204,7 @@ unsigned char CompileShader(GLuint *shader, std::string src) {
 	}
 	return true;
 }
+
 
 
 
