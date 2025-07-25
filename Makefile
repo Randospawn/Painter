@@ -7,7 +7,7 @@ BLD:=$(shell echo .\build)
 
 
 build:
-	g++ $(SRC)\main.cpp -I$(INC) -L$(LIB) -lgdi32 -o$(BLD)\main.exe
+	g++ $(SRC)\main.cpp -I$(INC) -L$(LIB) -ldwmapi -lgdi32 -o$(BLD)\main.exe
 .PHONY : build
 
 run:
