@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <util/util.hpp>
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 			exit(-1);
 		}
 	}
-	GLuint vbo, vao, vs, fs, p, texture;
+	GLuint vbo, vao, vs, fs, p;
 	glGenBuffers(1, &vbo);
 	glGenVertexArrays(1, &vao);
 	
@@ -69,7 +70,7 @@ int main(int argc, char **argv) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	{ // Get & compile shaders, then set up the texture
+	{ // Get & compile shaders
 		std::string vss, fss;
 		unsigned char s = ReadFile(".\\src\\vert.glsl", &vss);
 		if (s != true) {
@@ -117,16 +118,25 @@ int main(int argc, char **argv) {
 		glLinkProgram(p); // Remember to check if linked propperly eventually
 		glDeleteShader(fs);
 		glDeleteShader(vs);
-		
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	
+	
+	// Set up the texture & framebuffer
+	// Framebuffer fbo;
+	Texture2D tex(width, height, GL_RGBA32F);
+	/*
+	fbo.SetColorTexture(tex, GL_COLOR_ATTACHMENT0, 0);
+	fbo.DSRDRRBUFF(width, height);
+	if (fbo.CheckFBO() != true) {
+		glDeleteProgram(p);
+		glDeleteBuffers(1, &vbo);
+		glDeleteVertexArrays(1, &vao);
+		glfwDestroyWindow(win);
+		glfwTerminate();
+		return -1;
+	}
+	*/
+	
 	
 	// run loop it
 	while (glfwWindowShouldClose(win) != true) {
@@ -140,19 +150,22 @@ int main(int argc, char **argv) {
 		glBindVertexArray(vao);
 		glUseProgram(p);
 		glClear(GL_COLOR_BUFFER_BIT);
+		// fbo.Bind();
 		
 		GLint tl = glGetUniformLocation(p, "txtr");
 		glUniform1i(tl, 0); // Sets the texture slot of txtr to slot 0
 		
 		// Bind the texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindImageTexture(0, *tex.GetId(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 		
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		
 		glfwSwapBuffers(win);
 		glBindVertexArray(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		// tex.Unbind();
+		// fbo.Unbind();
 	}
 	
 	// clean & exit

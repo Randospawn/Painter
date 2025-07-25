@@ -1,12 +1,13 @@
 #version 460 core
 
 
-uniform sampler2D txtr;
-in vec2 uv;
+layout(rgba32f, binding = 0) uniform image2D txtr;
+// in vec2 uv;
+// uniform int m1d;
 
 
 void main() {
-	
-	
-	gl_FragColor = vec4((texture(txtr, uv).rgb + vec3(1.0, 0.0, 0.0)), 1.0);
+	ivec2 tc = ivec2(gl_FragCoord.xy);
+	imageStore(txtr, tc, vec4((imageLoad(txtr, tc).rgb + vec3(1.0, 0.0, 0.0)), 1.0));
+	gl_FragColor = imageLoad(txtr, tc).rgba;
 }

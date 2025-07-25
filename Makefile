@@ -7,7 +7,7 @@ BLD:=$(shell echo .\build)
 
 
 build:
-	g++ $(SRC)\main.cpp $(INC)\glad\glad.c -I$(INC) -L$(LIB) -lglfw3 -lopengl32 -lgdi32 -o$(BLD)\main.exe
+	g++ $(SRC)\main.cpp $(INC)\util\util.cpp $(INC)\glad\glad.c -I$(INC) -L$(LIB) -lglfw3 -lopengl32 -lgdi32 -o$(BLD)\main.exe
 .PHONY : build
 
 run:
