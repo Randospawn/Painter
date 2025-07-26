@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <states/states.h>
 #include <dwmapi.h>
 #include <iostream>
 #include <cmath>
@@ -7,13 +8,9 @@
 
 
 
-unsigned char W_PS = false;
-int B_W = 20;
-unsigned char M_BS = false; // I think I'll call you "mouse bullshit" instead from now on!
-int M_X, M_Y;
-LRESULT CALLBACK mwcProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
+// UUUuuUUuUuuUuUhhhh this is sooo much better than opengl
 int main(int argc, char **argv) {
 	HINSTANCE hInst = GetModuleHandleW(NULL);
 	const wchar_t mwcn[] = L"MAIN";
@@ -24,6 +21,7 @@ int main(int argc, char **argv) {
 	RegisterClassW(&mwc);
 	
 	
+	// Lokat how fucking easy making this shit will be
 	HWND hWnd = CreateWindowExW(
 		0,
 		mwcn,
@@ -46,10 +44,6 @@ int main(int argc, char **argv) {
 	if (SUCCEEDED(hr) != true) {
 		DestroyWindow(hWnd);
 	}
-	
-	
-	POINT mPos;
-	GetCursorPos(&mPos);
 	
 	
 	MSG msg = {};
@@ -77,36 +71,19 @@ LRESULT CALLBACK mwcProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			{
 				M_X = LOWORD(lParam);
 				M_Y = HIWORD(lParam);
-				if (W_PS != false) {
-					if (M_BS != true) {
-						l = (M_X - B_W), t = (M_Y + B_W), r = (M_X + B_W), b = (M_Y - B_W);
-						// Find better & more efficient way of forcing a window redraw (also make menus for creating new "projects")
-						InvalidateRect(hWnd, NULL, TRUE); // Forces the whole window to repaint
-						UpdateWindow(hWnd);
-					}
-				}
 				return 0;
 			}
-		case WM_PAINT:
+		case WM_PAINT: // OH FUCK NO GPO BACK
 			{
 				PAINTSTRUCT ps;
 				HDC hdc = BeginPaint(hWnd, &ps);
-				HBRUSH brush = CreateSolidBrush(RGB(40, 40, 40));
-				SelectObject(hdc, brush);
+				HBRUSH b = CreateSolidBrush(RGB(40, 40, 40));
+				SelectObject(hdc, b);
+				
 				FillRect(hdc, &ps.rcPaint, NULL);
 				
-				if (W_PS != false) {
-					if (M_BS != true) {
-						HBRUSH nb = CreateSolidBrush(RGB(0, 0, 0));
-						SelectObject(hdc, nb);
-						Ellipse(hdc, l, t, r, b);
-						SelectObject(hdc, brush);
-						DeleteObject(nb);
-					}
-				}
-				
 				EndPaint(hWnd, &ps);
-				DeleteObject(brush);
+				DeleteObject(b);
 				return 0;
 			}
 		case WM_LBUTTONDOWN:
