@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <numbers>
+#include <window/window.hpp>
 
 
 
@@ -12,37 +13,15 @@
 
 // UUUuuUUuUuuUuUhhhh this is sooo much better than opengl
 int main(int argc, char **argv) {
-	HINSTANCE hInst = GetModuleHandleW(NULL);
-	const wchar_t mwcn[] = L"MAIN";
-	WNDCLASSW mwc = {};
-	mwc.lpfnWndProc = mwcProc;
-	mwc.hInstance = hInst;
-	mwc.lpszClassName = mwcn;
-	RegisterClassW(&mwc);
-	
-	
-	// Lokat how fucking easy making this shit will be
-	HWND hWnd = CreateWindowExW(
-		0,
-		mwcn,
-		L"Window",
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		NULL,
-		NULL,
-		hInst,
-		NULL
-	);
-	if (hWnd == NULL) {
-		return 0;
-	}
-	ShowWindow(hWnd, SW_SHOWNORMAL);
+	Window win((wchar_t *)L"MAIN");
+	win.wc.lpfnWndProc = mwcProc;
+	win.Open(800, 600, (wchar_t *)L"Window");
 	
 	
 	BOOL dmt = TRUE;
-	HRESULT hr = DwmSetWindowAttribute(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &dmt, sizeof(dmt));
+	HRESULT hr = DwmSetWindowAttribute(win.Wdw, DWMWA_USE_IMMERSIVE_DARK_MODE, &dmt, sizeof(dmt));
 	if (SUCCEEDED(hr) != true) {
-		DestroyWindow(hWnd);
+		DestroyWindow(win.Wdw);
 	}
 	
 	
